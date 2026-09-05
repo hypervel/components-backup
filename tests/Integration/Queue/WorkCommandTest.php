@@ -28,11 +28,14 @@ class WorkCommandTest extends QueueTestCase
 {
     use DatabaseMigrations;
 
+    /**
+     * Define the test environment.
+     */
     protected function defineEnvironment(ApplicationContract $app): void
     {
         parent::defineEnvironment($app);
 
-        $app->make('config')->set('queue.default', 'database');
+        $app->make('config')->set('queue.default', env('QUEUE_CONNECTION', 'database'));
     }
 
     protected function setUp(): void
