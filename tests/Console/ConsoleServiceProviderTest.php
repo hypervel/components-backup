@@ -19,11 +19,13 @@ use Hypervel\Coroutine\Coroutine;
 use Hypervel\Engine\Channel;
 use Hypervel\Log\Context\Events\ContextHydrated;
 use Hypervel\Log\Context\Repository;
+use Hypervel\Support\Env;
 use Hypervel\Support\Facades\Context;
 use Hypervel\Testbench\Attributes\WithEnv;
 use Hypervel\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Process\Process;
 
 class ConsoleServiceProviderTest extends TestCase
 {
@@ -49,7 +51,8 @@ class ConsoleServiceProviderTest extends TestCase
         }
     }
 
-    public function testProcessContextIsHydratedOnlyForTheInitialCommand(): void
+    #[DataProvider('putenvAdapters')]
+    public function testProcessContextIsHydratedOnlyForTheInitialCommand(bool $putenvEnabled): void
     {
         $payload = [
             'data' => ['task' => serialize('concurrency')],
@@ -58,8 +61,21 @@ class ConsoleServiceProviderTest extends TestCase
         $restoreEnvironment = (new WithEnv('__HYPERVEL_CONTEXT', base64_encode(serialize($payload))))($this->app);
 
         try {
+            if (! $putenvEnabled) {
+                Env::disablePutenv();
+            }
+
             $events = $this->app->make('events');
             (new ConsoleServiceProvider($this->app))->boot($events);
+
+            $this->assertNull(Env::get('__HYPERVEL_CONTEXT'));
+            $this->assertFalse(getenv('__HYPERVEL_CONTEXT'));
+            $this->assertArrayNotHasKey('__HYPERVEL_CONTEXT', $_ENV);
+            $this->assertArrayNotHasKey('__HYPERVEL_CONTEXT', $_SERVER);
+
+            $process = new Process([PHP_BINARY, '-r', 'echo json_encode(getenv("__HYPERVEL_CONTEXT"));']);
+            $process->mustRun();
+            $this->assertSame('false', $process->getOutput());
 
             $command = new BeforeHandle(new Command('context:test'), new ArrayInput([]));
             $hydrations = 0;
@@ -95,8 +111,20 @@ class ConsoleServiceProviderTest extends TestCase
             $this->assertSame([false], $result->pop(1));
             $this->assertSame(1, $hydrations);
         } finally {
+            Env::enablePutenv();
             $restoreEnvironment();
         }
+    }
+
+    /**
+     * Provide environment adapter configurations.
+     */
+    public static function putenvAdapters(): array
+    {
+        return [
+            'putenv enabled' => [true],
+            'putenv disabled' => [false],
+        ];
     }
 
     #[DataProvider('contextsWithoutProcessHydration')]
@@ -109,6 +137,11 @@ class ConsoleServiceProviderTest extends TestCase
             $this->app->setRunningInConsole($runningInConsole);
             $events = $this->app->make('events');
             (new ConsoleServiceProvider($this->app))->boot($events);
+
+            if ($runningInConsole) {
+                $this->assertNull(Env::get('__HYPERVEL_CONTEXT'));
+                $this->assertFalse(getenv('__HYPERVEL_CONTEXT'));
+            }
 
             $hydrations = 0;
             $events->listen(ContextHydrated::class, static function () use (&$hydrations): void {
