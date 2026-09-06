@@ -1643,6 +1643,8 @@ class SupportStrTest extends TestCase
         $this->assertSame('Мама', Str::ucwords('мама'));
         $this->assertSame('Мама Мыла Раму', Str::ucwords('мама мыла раму'));
         $this->assertSame('JJ Watt', Str::ucwords('JJ watt'));
+        $this->assertSame('Мама мыла раму', Str::ucwords('мама мыла раму', ''));
+        $this->assertSame('', Str::ucwords('', ''));
     }
 
     public function testUcsplit(): void

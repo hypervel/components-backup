@@ -218,7 +218,7 @@ class SupportStringableTest extends TestCase
         $this->assertSame('Taylor Otwell', (string) $this->stringable('Taylor Otwell')->words(3));
     }
 
-    public function testUcwords()
+    public function testUcwords(): void
     {
         $this->assertSame('Hypervel', (string) $this->stringable('hypervel')->ucwords());
         $this->assertSame('Hypervel Framework', (string) $this->stringable('hypervel framework')->ucwords());
@@ -226,6 +226,8 @@ class SupportStringableTest extends TestCase
         $this->assertSame('Мама', (string) $this->stringable('мама')->ucwords());
         $this->assertSame('Мама Мыла Раму', (string) $this->stringable('мама мыла раму')->ucwords());
         $this->assertSame('JJ Watt', (string) $this->stringable('JJ watt')->ucwords());
+        $this->assertSame('Мама мыла раму', (string) $this->stringable('мама мыла раму')->ucwords(''));
+        $this->assertSame('', (string) $this->stringable('')->ucwords(''));
     }
 
     public function testUnless()
