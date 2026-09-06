@@ -8,6 +8,8 @@ use Hypervel\Foundation\Testing\Concerns\InteractsWithRedis;
 use Hypervel\Redis\RedisConnection;
 use Hypervel\Support\Facades\Redis;
 use Hypervel\Testbench\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Redis as PhpRedis;
 
 /**
  * Integration tests for SafeScan and FlushByPattern operations.
@@ -20,7 +22,8 @@ class SafeScanIntegrationTest extends TestCase
 {
     use InteractsWithRedis;
 
-    public function testSafeScanYieldsKeysWithoutPrefix()
+    #[DataProvider('scanPrefixOptions')]
+    public function testSafeScanYieldsKeysWithoutPrefix(bool $prefixScan, bool $retryScan): void
     {
         $prefix = 'safescan_test:';
         $connectionName = $this->createRedisConnectionWithPrefix($prefix);
@@ -33,8 +36,16 @@ class SafeScanIntegrationTest extends TestCase
         $redis->set('key3', 'val3');
 
         // safeScan should yield keys WITHOUT the prefix
-        $keys = $redis->withConnection(function (RedisConnection $connection) {
-            return iterator_to_array($connection->safeScan('key*'));
+        $keys = $redis->withConnection(function (RedisConnection $connection) use ($prefix, $prefixScan, $retryScan): array {
+            $connection->setOption(PhpRedis::OPT_SCAN, $retryScan ? PhpRedis::SCAN_RETRY : PhpRedis::SCAN_NORETRY);
+            $connection->setOption(PhpRedis::OPT_SCAN, $prefixScan ? PhpRedis::SCAN_PREFIX : PhpRedis::SCAN_NOPREFIX);
+            $options = $connection->getOption(PhpRedis::OPT_SCAN);
+            $keys = iterator_to_array($connection->safeScan('key*'));
+
+            $this->assertEqualsCanonicalizing($keys, iterator_to_array($connection->safeScan($prefix . 'key*')));
+            $this->assertSame($options, $connection->getOption(PhpRedis::OPT_SCAN));
+
+            return $keys;
         }, transform: false);
 
         sort($keys);
@@ -43,6 +54,18 @@ class SafeScanIntegrationTest extends TestCase
 
         // Verify these keys work with get() (which auto-adds prefix)
         $this->assertSame('val1', $redis->get('key1'));
+    }
+
+    /**
+     * Provide native scan prefix and retry settings.
+     */
+    public static function scanPrefixOptions(): array
+    {
+        return [
+            'no prefixing' => [false, false],
+            'prefixing' => [true, false],
+            'prefixing and retry' => [true, true],
+        ];
     }
 
     public function testSafeScanWithoutPrefix()
