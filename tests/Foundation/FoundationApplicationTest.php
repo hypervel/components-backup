@@ -32,7 +32,7 @@ class FoundationApplicationTest extends TestCase
 {
     protected ?string $namespaceApplicationPath = null;
 
-    protected ?string $configurationApplicationPath = null;
+    protected ?string $cacheApplicationPath = null;
 
     protected function tearDown(): void
     {
@@ -41,8 +41,8 @@ class FoundationApplicationTest extends TestCase
                 (new Filesystem)->deleteDirectory($this->namespaceApplicationPath);
             }
 
-            if ($this->configurationApplicationPath !== null) {
-                (new Filesystem)->deleteDirectory($this->configurationApplicationPath);
+            if ($this->cacheApplicationPath !== null) {
+                (new Filesystem)->deleteDirectory($this->cacheApplicationPath);
             }
         } finally {
             parent::tearDown();
@@ -859,14 +859,14 @@ class FoundationApplicationTest extends TestCase
 
     public function testConfigurationIsCachedReturnsFalseWhenNoCacheFile(): void
     {
-        $app = $this->makeConfigurationApplication();
+        $app = $this->makeCacheApplication();
 
         $this->assertFalse($app->configurationIsCached());
     }
 
     public function testConfigurationIsCachedReturnsTrueWhenCacheFileExists(): void
     {
-        $app = $this->makeConfigurationApplication();
+        $app = $this->makeCacheApplication();
         file_put_contents($app->getCachedConfigPath(), '<?php return [];');
 
         $this->assertTrue($app->configurationIsCached());
@@ -874,7 +874,7 @@ class FoundationApplicationTest extends TestCase
 
     public function testConfigurationIsCachedUsesBoundState(): void
     {
-        $app = $this->makeConfigurationApplication();
+        $app = $this->makeCacheApplication();
         $app->instance('config_loaded_from_cache', true);
 
         $this->assertTrue($app->configurationIsCached());
@@ -887,7 +887,7 @@ class FoundationApplicationTest extends TestCase
 
     public function testConfigurationIsCachedMemoizesFilesystemResult(): void
     {
-        $app = $this->makeConfigurationApplication();
+        $app = $this->makeCacheApplication();
         $cachePath = $app->getCachedConfigPath();
 
         $this->assertFalse($app->configurationIsCached());
@@ -896,7 +896,7 @@ class FoundationApplicationTest extends TestCase
 
         $this->assertFalse($app->configurationIsCached());
 
-        $freshApp = new Application($this->configurationApplicationPath);
+        $freshApp = new Application($this->cacheApplicationPath);
 
         $this->assertTrue($freshApp->configurationIsCached());
 
@@ -905,30 +905,52 @@ class FoundationApplicationTest extends TestCase
         $this->assertTrue($freshApp->configurationIsCached());
     }
 
-    public function testRoutesAreCachedReturnsFalseWhenNoCacheFile()
+    public function testRoutesAreCachedReturnsFalseWhenNoCacheFile(): void
     {
-        $app = new Application(sys_get_temp_dir() . '/hypervel-test-app-' . uniqid());
+        $app = $this->makeCacheApplication();
 
         $this->assertFalse($app->routesAreCached());
     }
 
-    public function testRoutesAreCachedReturnsTrueWhenCacheFileExists()
+    public function testRoutesAreCachedReturnsTrueWhenCacheFileExists(): void
     {
-        $basePath = sys_get_temp_dir() . '/hypervel-test-app-' . uniqid();
-        $cachePath = $basePath . '/bootstrap/cache/routes-v7.php';
+        $app = $this->makeCacheApplication();
+        file_put_contents($this->cacheApplicationPath . '/bootstrap/cache/routes-v7.php', '<?php return [];');
 
-        mkdir(dirname($cachePath), 0755, true);
+        $this->assertTrue($app->routesAreCached());
+    }
+
+    public function testRoutesAreCachedUsesBoundState(): void
+    {
+        $app = $this->makeCacheApplication();
+        $app->instance('routes.cached', true);
+
+        $this->assertTrue($app->routesAreCached());
+
+        file_put_contents($app->getCachedRoutesPath(), '<?php return [];');
+        $app->instance('routes.cached', false);
+
+        $this->assertFalse($app->routesAreCached());
+    }
+
+    public function testRoutesAreCachedMemoizesFilesystemResult(): void
+    {
+        $app = $this->makeCacheApplication();
+        $cachePath = $app->getCachedRoutesPath();
+
+        $this->assertFalse($app->routesAreCached());
+
         file_put_contents($cachePath, '<?php return [];');
 
-        try {
-            $app = new Application($basePath);
-            $this->assertTrue($app->routesAreCached());
-        } finally {
-            unlink($cachePath);
-            rmdir(dirname($cachePath));
-            rmdir(dirname($cachePath, 2));
-            rmdir($basePath);
-        }
+        $this->assertFalse($app->routesAreCached());
+
+        $freshApp = new Application($this->cacheApplicationPath);
+
+        $this->assertTrue($freshApp->routesAreCached());
+
+        unlink($cachePath);
+
+        $this->assertTrue($freshApp->routesAreCached());
     }
 
     public function testEventsAreCachedReturnsFalseWhenNoCacheFile()
@@ -977,17 +999,17 @@ class FoundationApplicationTest extends TestCase
     }
 
     /**
-     * Create an application with an isolated configuration cache directory.
+     * Create an application with an isolated cache directory.
      */
-    private function makeConfigurationApplication(): Application
+    private function makeCacheApplication(): Application
     {
-        $this->configurationApplicationPath = ParallelTesting::tempDir('FoundationApplicationConfigTest');
+        $this->cacheApplicationPath = ParallelTesting::tempDir('FoundationApplicationCacheTest');
 
         $files = new Filesystem;
-        $files->deleteDirectory($this->configurationApplicationPath);
-        $files->makeDirectory($this->configurationApplicationPath . '/bootstrap/cache', 0755, true);
+        $files->deleteDirectory($this->cacheApplicationPath);
+        $files->makeDirectory($this->cacheApplicationPath . '/bootstrap/cache', 0755, true);
 
-        return new Application($this->configurationApplicationPath);
+        return new Application($this->cacheApplicationPath);
     }
 
     private function makeNamespaceApplication(?string $composerContents, bool $createAppPath = true): Application
