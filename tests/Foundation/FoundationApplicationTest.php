@@ -32,11 +32,17 @@ class FoundationApplicationTest extends TestCase
 {
     protected ?string $namespaceApplicationPath = null;
 
+    protected ?string $configurationApplicationPath = null;
+
     protected function tearDown(): void
     {
         try {
             if ($this->namespaceApplicationPath !== null) {
                 (new Filesystem)->deleteDirectory($this->namespaceApplicationPath);
+            }
+
+            if ($this->configurationApplicationPath !== null) {
+                (new Filesystem)->deleteDirectory($this->configurationApplicationPath);
             }
         } finally {
             parent::tearDown();
@@ -523,8 +529,7 @@ class FoundationApplicationTest extends TestCase
     {
         $app = $this->makeNamespaceApplication(null);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to detect application namespace.');
+        $this->expectExceptionObject(new RuntimeException('Unable to detect application namespace.'));
 
         $app->getNamespace();
     }
@@ -535,8 +540,7 @@ class FoundationApplicationTest extends TestCase
         unlink($this->namespaceApplicationPath . '/composer.json');
         mkdir($this->namespaceApplicationPath . '/composer.json');
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to detect application namespace.');
+        $this->expectExceptionObject(new RuntimeException('Unable to detect application namespace.'));
 
         $app->getNamespace();
     }
@@ -559,8 +563,7 @@ class FoundationApplicationTest extends TestCase
     {
         $app = $this->makeNamespaceApplication('null');
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to detect application namespace.');
+        $this->expectExceptionObject(new RuntimeException('Unable to detect application namespace.'));
 
         $app->getNamespace();
     }
@@ -571,8 +574,7 @@ class FoundationApplicationTest extends TestCase
             'autoload' => ['psr-4' => 'app/'],
         ], JSON_THROW_ON_ERROR));
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to detect application namespace.');
+        $this->expectExceptionObject(new RuntimeException('Unable to detect application namespace.'));
 
         $app->getNamespace();
     }
@@ -583,8 +585,7 @@ class FoundationApplicationTest extends TestCase
             'autoload' => ['psr-4' => ['App\\' => [123]]],
         ], JSON_THROW_ON_ERROR));
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to detect application namespace.');
+        $this->expectExceptionObject(new RuntimeException('Unable to detect application namespace.'));
 
         $app->getNamespace();
     }
@@ -595,8 +596,7 @@ class FoundationApplicationTest extends TestCase
             'autoload' => ['psr-4' => ['App\\' => 'missing/']],
         ], JSON_THROW_ON_ERROR), createAppPath: false);
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to detect application namespace.');
+        $this->expectExceptionObject(new RuntimeException('Unable to detect application namespace.'));
 
         $app->getNamespace();
     }
@@ -817,19 +817,17 @@ class FoundationApplicationTest extends TestCase
         $this->assertSame($times, m::getContainer()->mockery_getExpectationCount());
     }
 
-    public function testAbortThrowsNotFoundHttpException()
+    public function testAbortThrowsNotFoundHttpException(): void
     {
-        $this->expectException(NotFoundHttpException::class);
-        $this->expectExceptionMessage('Page was not found');
+        $this->expectExceptionObject(new NotFoundHttpException('Page was not found'));
 
         $app = new Application;
         $app->abort(404, 'Page was not found');
     }
 
-    public function testAbortThrowsHttpException()
+    public function testAbortThrowsHttpException(): void
     {
-        $this->expectException(HttpException::class);
-        $this->expectExceptionMessage('Request is bad');
+        $this->expectExceptionObject(new HttpException(400, 'Request is bad'));
 
         $app = new Application;
         $app->abort(400, 'Request is bad');
@@ -859,30 +857,52 @@ class FoundationApplicationTest extends TestCase
         $this->assertArrayHasKey(0, $listeners);
     }
 
-    public function testConfigurationIsCachedReturnsFalseWhenNoCacheFile()
+    public function testConfigurationIsCachedReturnsFalseWhenNoCacheFile(): void
     {
-        $app = new Application(sys_get_temp_dir() . '/hypervel-test-app-' . uniqid());
+        $app = $this->makeConfigurationApplication();
 
         $this->assertFalse($app->configurationIsCached());
     }
 
-    public function testConfigurationIsCachedReturnsTrueWhenCacheFileExists()
+    public function testConfigurationIsCachedReturnsTrueWhenCacheFileExists(): void
     {
-        $basePath = sys_get_temp_dir() . '/hypervel-test-app-' . uniqid();
-        $cachePath = $basePath . '/bootstrap/cache/config.php';
+        $app = $this->makeConfigurationApplication();
+        file_put_contents($app->getCachedConfigPath(), '<?php return [];');
 
-        mkdir(dirname($cachePath), 0755, true);
+        $this->assertTrue($app->configurationIsCached());
+    }
+
+    public function testConfigurationIsCachedUsesBoundState(): void
+    {
+        $app = $this->makeConfigurationApplication();
+        $app->instance('config_loaded_from_cache', true);
+
+        $this->assertTrue($app->configurationIsCached());
+
+        file_put_contents($app->getCachedConfigPath(), '<?php return [];');
+        $app->instance('config_loaded_from_cache', false);
+
+        $this->assertFalse($app->configurationIsCached());
+    }
+
+    public function testConfigurationIsCachedMemoizesFilesystemResult(): void
+    {
+        $app = $this->makeConfigurationApplication();
+        $cachePath = $app->getCachedConfigPath();
+
+        $this->assertFalse($app->configurationIsCached());
+
         file_put_contents($cachePath, '<?php return [];');
 
-        try {
-            $app = new Application($basePath);
-            $this->assertTrue($app->configurationIsCached());
-        } finally {
-            unlink($cachePath);
-            rmdir(dirname($cachePath));
-            rmdir(dirname($cachePath, 2));
-            rmdir($basePath);
-        }
+        $this->assertFalse($app->configurationIsCached());
+
+        $freshApp = new Application($this->configurationApplicationPath);
+
+        $this->assertTrue($freshApp->configurationIsCached());
+
+        unlink($cachePath);
+
+        $this->assertTrue($freshApp->configurationIsCached());
     }
 
     public function testRoutesAreCachedReturnsFalseWhenNoCacheFile()
@@ -954,6 +974,20 @@ class FoundationApplicationTest extends TestCase
         $app = new Application;
 
         $this->assertSame($app, $app->addAbsoluteCachePathPrefix('s3:'));
+    }
+
+    /**
+     * Create an application with an isolated configuration cache directory.
+     */
+    private function makeConfigurationApplication(): Application
+    {
+        $this->configurationApplicationPath = ParallelTesting::tempDir('FoundationApplicationConfigTest');
+
+        $files = new Filesystem;
+        $files->deleteDirectory($this->configurationApplicationPath);
+        $files->makeDirectory($this->configurationApplicationPath . '/bootstrap/cache', 0755, true);
+
+        return new Application($this->configurationApplicationPath);
     }
 
     private function makeNamespaceApplication(?string $composerContents, bool $createAppPath = true): Application
