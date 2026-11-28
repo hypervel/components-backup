@@ -62,6 +62,7 @@ class DiscardedDateRuleTest extends RuleTestCase
             $mayChange('dayOfYear', 71),
             $mayChange('setTime', 72),
             $unchanged('subDay', 86),
+            $unchanged('addDay', 97),
         ]);
     }
 

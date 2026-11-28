@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Support;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\CarbonInterface;
 use Carbon\Factory;
 use Carbon\Month;
@@ -14,32 +15,36 @@ use DateTimeZone;
 use Hypervel\Support\Attributes\BootOnly;
 use InvalidArgumentException;
 use ReflectionClass;
+use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use UnexpectedValueException;
 
 /**
  * @see https://carbon.nesbot.com/docs/
  * @see https://github.com/briannesbitt/Carbon/blob/master/src/Carbon/Factory.php
  *
  * @method bool canBeCreatedFromFormat(?string $date, string $format)
- * @method null|CarbonInterface create($year = 0, $month = 1, $day = 1, $hour = 0, $minute = 0, $second = 0, $timezone = null)
- * @method CarbonInterface createFromDate($year = null, $month = null, $day = null, $timezone = null)
- * @method null|CarbonInterface createFromFormat($format, $time, $timezone = null)
- * @method null|CarbonInterface createFromIsoFormat(string $format, string $time, $timezone = null, ?string $locale = 'en', ?TranslatorInterface $translator = null)
- * @method null|CarbonInterface createFromLocaleFormat(string $format, string $locale, string $time, $timezone = null)
- * @method null|CarbonInterface createFromLocaleIsoFormat(string $format, string $locale, string $time, $timezone = null)
- * @method CarbonInterface createFromTime($hour = 0, $minute = 0, $second = 0, $timezone = null)
- * @method CarbonInterface createFromTimeString(string $time, DateTimeZone|string|int|null $timezone = null)
- * @method CarbonInterface createFromTimestamp(string|int|float $timestamp, DateTimeZone|string|int|null $timezone = null)
- * @method CarbonInterface createFromTimestampMs(string|int|float $timestamp, DateTimeZone|string|int|null $timezone = null)
- * @method CarbonInterface createFromTimestampMsUTC($timestamp)
- * @method CarbonInterface createFromTimestampUTC(float|int|string $timestamp)
- * @method CarbonInterface createMidnightDate($year = null, $month = null, $day = null, $timezone = null)
- * @method null|CarbonInterface createSafe($year = null, $month = null, $day = null, $hour = null, $minute = null, $second = null, $timezone = null)
- * @method CarbonInterface createStrict(?int $year = 0, ?int $month = 1, ?int $day = 1, ?int $hour = 0, ?int $minute = 0, ?int $second = 0, $timezone = null)
+ * @method null|BaseCarbonImmutable create($year = 0, $month = 1, $day = 1, $hour = 0, $minute = 0, $second = 0, $timezone = null)
+ * @method BaseCarbonImmutable createFromDate($year = null, $month = null, $day = null, $timezone = null)
+ * @method null|BaseCarbonImmutable createFromFormat($format, $time, $timezone = null)
+ * @method BaseCarbonImmutable createFromId(string|Ulid|Uuid $id)
+ * @method null|BaseCarbonImmutable createFromIsoFormat(string $format, string $time, $timezone = null, ?string $locale = 'en', ?TranslatorInterface $translator = null)
+ * @method null|BaseCarbonImmutable createFromLocaleFormat(string $format, string $locale, string $time, $timezone = null)
+ * @method null|BaseCarbonImmutable createFromLocaleIsoFormat(string $format, string $locale, string $time, $timezone = null)
+ * @method BaseCarbonImmutable createFromTime($hour = 0, $minute = 0, $second = 0, $timezone = null)
+ * @method BaseCarbonImmutable createFromTimeString(string $time, DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable createFromTimestamp(string|int|float $timestamp, DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable createFromTimestampMs(string|int|float $timestamp, DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable createFromTimestampMsUTC($timestamp)
+ * @method BaseCarbonImmutable createFromTimestampUTC(float|int|string $timestamp)
+ * @method BaseCarbonImmutable createMidnightDate($year = null, $month = null, $day = null, $timezone = null)
+ * @method null|BaseCarbonImmutable createSafe($year = null, $month = null, $day = null, $hour = null, $minute = null, $second = null, $timezone = null)
+ * @method BaseCarbonImmutable createStrict(?int $year = 0, ?int $month = 1, ?int $day = 1, ?int $hour = 0, ?int $minute = 0, ?int $second = 0, $timezone = null)
  * @method void disableHumanDiffOption($humanDiffOption)
  * @method void enableHumanDiffOption($humanDiffOption)
  * @method mixed executeWithLocale(string $locale, callable $func)
- * @method CarbonInterface fromSerialized($value)
+ * @method BaseCarbonImmutable fromSerialized($value)
  * @method array getAvailableLocales()
  * @method array getAvailableLocalesInfo()
  * @method array getDays()
@@ -52,7 +57,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @method int getMidDayAt()
  * @method string getTimeFormatByPrecision(string $unitPrecision)
  * @method null|Closure|string getTranslationMessageWith($translator, string $key, ?string $locale = null, ?string $default = null)
- * @method null|CarbonInterface getTestNow()
+ * @method null|CarbonInterface|Closure getTestNow()
  * @method TranslatorInterface getTranslator()
  * @method int getWeekEndsAt(?string $locale = null)
  * @method int getWeekStartsAt(?string $locale = null)
@@ -62,7 +67,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @method bool hasMacro($name)
  * @method bool hasRelativeKeywords(?string $time)
  * @method bool hasTestNow()
- * @method CarbonInterface instance(DateTimeInterface $date)
+ * @method BaseCarbonImmutable instance(DateTimeInterface $date)
  * @method bool isImmutable()
  * @method bool isModifiableUnit($unit)
  * @method bool isMutable()
@@ -73,14 +78,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @method bool localeHasPeriodSyntax($locale)
  * @method bool localeHasShortUnits(string $locale)
  * @method void macro(string $name, ?callable $macro)
- * @method null|CarbonInterface make($var, DateTimeZone|string|null $timezone = null)
+ * @method null|BaseCarbonImmutable make($var, DateTimeZone|string|null $timezone = null)
  * @method void mixin(object|string $mixin)
- * @method CarbonInterface now(DateTimeZone|string|int|null $timezone = null)
- * @method CarbonInterface parse(DateTimeInterface|WeekDay|Month|string|int|float|null $time, DateTimeZone|string|int|null $timezone = null)
- * @method CarbonInterface parseFromLocale(string $time, ?string $locale = null, DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable now(DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable parse(DateTimeInterface|WeekDay|Month|string|int|float|null $time, DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable parseFromLocale(string $time, ?string $locale = null, DateTimeZone|string|int|null $timezone = null)
  * @method string pluralUnit(string $unit)
- * @method null|CarbonInterface rawCreateFromFormat(string $format, string $time, $timezone = null)
- * @method CarbonInterface rawParse(DateTimeInterface|WeekDay|Month|string|int|float|null $time, DateTimeZone|string|int|null $timezone = null)
+ * @method null|BaseCarbonImmutable rawCreateFromFormat(string $format, string $time, $timezone = null)
+ * @method BaseCarbonImmutable rawParse(DateTimeInterface|WeekDay|Month|string|int|float|null $time, DateTimeZone|string|int|null $timezone = null)
  * @method void resetMonthsOverflow()
  * @method void resetToStringFormat()
  * @method void resetYearsOverflow()
@@ -98,30 +103,68 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * @method bool shouldOverflowYears()
  * @method string singularUnit(string $unit)
  * @method void sleep(float|int $seconds)
- * @method CarbonInterface today(DateTimeZone|string|int|null $timezone = null)
- * @method CarbonInterface tomorrow(DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable today(DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable tomorrow(DateTimeZone|string|int|null $timezone = null)
  * @method string translateTimeString(string $timeString, ?string $from = null, ?string $to = null, int $mode = \Carbon\CarbonInterface::TRANSLATE_ALL)
  * @method string translateWith(TranslatorInterface $translator, string $key, array $parameters = [], $number = null)
  * @method void useMonthsOverflow($monthsOverflow = true)
  * @method void useStrictMode($strictModeEnabled = true)
  * @method void useYearsOverflow($yearsOverflow = true)
  * @method mixed withTestNow(mixed $testNow, callable $callback)
- * @method Factory withTimeZone(null|DateTimeZone|int|string $timezone)
- * @method CarbonInterface yesterday(DateTimeZone|string|int|null $timezone = null)
+ * @method BaseCarbonImmutable yesterday(DateTimeZone|string|int|null $timezone = null)
  */
 class DateFactory
 {
     /**
+     * The date creation methods and whether each may return null.
+     * Other Carbon methods and macros return their own values.
+     */
+    private const array DATE_CREATORS = [
+        '__set_state' => false,
+        'create' => true,
+        'createfromdate' => false,
+        'createfromformat' => true,
+        'createfromid' => false,
+        'createfrominterface' => false,
+        'createfromisoformat' => true,
+        'createfromlocaleformat' => true,
+        'createfromlocaleisoformat' => true,
+        'createfrommutable' => false,
+        'createfromtime' => false,
+        'createfromtimestamp' => false,
+        'createfromtimestampms' => false,
+        'createfromtimestampmsutc' => false,
+        'createfromtimestamputc' => false,
+        'createfromtimestring' => false,
+        'createmidnightdate' => false,
+        'createsafe' => true,
+        'createstrict' => false,
+        'endoftime' => false,
+        'fromserialized' => false,
+        'instance' => false,
+        'make' => true,
+        'now' => false,
+        'parse' => false,
+        'parsefromlocale' => false,
+        'rawcreatefromformat' => true,
+        'rawparse' => false,
+        'startoftime' => false,
+        'today' => false,
+        'tomorrow' => false,
+        'yesterday' => false,
+    ];
+
+    /**
      * The default class that will be used for all created dates.
      *
-     * @var class-string<CarbonInterface>
+     * @var class-string<BaseCarbonImmutable>
      */
     public const string DEFAULT_CLASS_NAME = CarbonImmutable::class;
 
     /**
      * The type (class) of dates that should be created.
      *
-     * @var null|class-string<CarbonInterface>
+     * @var null|class-string<BaseCarbonImmutable>
      */
     protected static ?string $dateClass = null;
 
@@ -151,7 +194,7 @@ class DateFactory
             return;
         }
 
-        if (is_string($handler) && is_a($handler, CarbonInterface::class, true)) {
+        if (is_string($handler) && is_a($handler, BaseCarbonImmutable::class, true)) {
             static::useClass($handler);
             return;
         }
@@ -162,7 +205,7 @@ class DateFactory
         }
 
         throw new InvalidArgumentException(
-            'Invalid date creation handler. Please provide a Carbon class, callable, or Carbon factory.'
+            'Invalid date creation handler. Please provide an immutable Carbon class, callable, or Carbon factory.'
         );
     }
 
@@ -184,7 +227,9 @@ class DateFactory
      * Execute the given callable on each date creation.
      *
      * The callable persists in a static property for the worker lifetime
-     * and runs on every date creation across all coroutines.
+     * and transforms each created date across all coroutines.
+     *
+     * @param callable(CarbonImmutable): BaseCarbonImmutable $callable
      */
     #[BootOnly]
     public static function useCallable(callable $callable): void
@@ -201,17 +246,17 @@ class DateFactory
      * The class name persists in a static property for the worker lifetime
      * and is used for every date creation across all coroutines.
      *
-     * @param class-string<CarbonInterface> $dateClass
+     * @param class-string<BaseCarbonImmutable> $dateClass
      */
     #[BootOnly]
     public static function useClass(string $dateClass): void
     {
         if (
-            ! is_a($dateClass, CarbonInterface::class, true)
+            ! is_a($dateClass, BaseCarbonImmutable::class, true)
             || ! (new ReflectionClass($dateClass))->isInstantiable()
         ) {
             throw new InvalidArgumentException(
-                'The date class must be an instantiable CarbonInterface implementation.'
+                'The date class must be an instantiable CarbonImmutable class.'
             );
         }
 
@@ -251,23 +296,34 @@ class DateFactory
     {
         $defaultClassName = static::DEFAULT_CLASS_NAME;
 
+        if (static::$factory === null && static::$callable === null) {
+            $dateClass = static::$dateClass ?? $defaultClassName;
+
+            if ($dateClass === $defaultClassName || method_exists($dateClass, $method) || $dateClass::hasMacro($method)) {
+                return $dateClass::$method(...$parameters);
+            }
+
+            return $dateClass::instance($defaultClassName::$method(...$parameters));
+        }
+
+        $result = static::$factory !== null
+            ? static::$factory->{$method}(...$parameters)
+            : $defaultClassName::$method(...$parameters);
+
+        $nullable = self::DATE_CREATORS[strtolower($method)] ?? null;
+
+        if ($nullable === null || ($nullable && $result === null)) {
+            return $result;
+        }
+
         if (static::$callable !== null) {
-            return (static::$callable)($defaultClassName::$method(...$parameters));
+            $result = (static::$callable)($result);
         }
 
-        if (static::$factory !== null) {
-            return static::$factory->{$method}(...$parameters);
+        if (! $result instanceof BaseCarbonImmutable) {
+            throw new UnexpectedValueException(sprintf('Date::%s() must return an immutable Carbon date, %s returned.', $method, get_debug_type($result)));
         }
 
-        $dateClass = static::$dateClass ?? $defaultClassName;
-
-        if (
-            method_exists($dateClass, $method)
-            || $dateClass::hasMacro($method)
-        ) {
-            return $dateClass::$method(...$parameters);
-        }
-
-        return $dateClass::instance($defaultClassName::$method(...$parameters));
+        return $result;
     }
 }

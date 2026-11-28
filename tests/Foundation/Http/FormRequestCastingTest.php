@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Foundation\Http\FormRequestCastingTest;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -13,7 +14,6 @@ use Hypervel\Foundation\Http\Casts\AsEnumCollection;
 use Hypervel\Foundation\Http\FormRequest;
 use Hypervel\Foundation\Http\InvalidCastException;
 use Hypervel\Routing\Redirector;
-use Hypervel\Support\Carbon;
 use Hypervel\Support\CarbonImmutable;
 use Hypervel\Support\Collection;
 use Hypervel\Support\DataObject;
@@ -394,7 +394,7 @@ class FormRequestCastingTest extends TestCase
     {
         $originalTimezone = date_default_timezone_get();
         date_default_timezone_set('America/New_York');
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
         try {
             $request = $this->validateRequest(DateRequest::class, [
@@ -403,9 +403,9 @@ class FormRequestCastingTest extends TestCase
             ]);
             $validated = $request->validated();
 
-            $this->assertSame(Carbon::class, $validated['numeric_string']::class);
+            $this->assertSame(BaseCarbonImmutable::class, $validated['numeric_string']::class);
             $this->assertSame('America/New_York', $validated['numeric_string']->getTimezone()->getName());
-            $this->assertSame(Carbon::class, $validated['existing']::class);
+            $this->assertSame(BaseCarbonImmutable::class, $validated['existing']::class);
         } finally {
             date_default_timezone_set($originalTimezone);
             Date::use(CarbonImmutable::class);

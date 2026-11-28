@@ -5,6 +5,7 @@ Support for Hypervel
 
 ## Differences From Laravel
 
+- Date creators return `Carbon\CarbonImmutable` or a subclass. Mutable class handlers and mutable dates returned by custom factories or callbacks are rejected. Use `toMutable()` for explicit conversion. See [Dates](https://hypervel.org/docs/helpers#dates).
 - The framework binds `date` to `DateFactory`, so a `Date` facade subclass's `DEFAULT_FACADE` only applies while `date` is unbound. In an application, bind `date` to your factory instead.
 - `all([])` on `Fluent`, `ValidatedInput`, and `UriQueryString` returns an empty array. Use `all()` to retrieve every field.
 - Laravel's deferred service-provider metadata APIs are intentionally omitted. Hypervel registers providers once for a long-lived worker, so the per-request bootstrap optimization those APIs support does not apply.

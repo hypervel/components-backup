@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Types\Foundation\Testing;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\CarbonInterface;
 use Hypervel\Foundation\Testing\Concerns\InteractsWithTime;
 use Hypervel\Support\CarbonImmutable;
@@ -16,11 +17,11 @@ class InteractsWithTimeTestCase
 
     public function test(): void
     {
-        assertType(CarbonInterface::class, $this->freezeTime());
+        assertType(BaseCarbonImmutable::class, $this->freezeTime());
         assertType('42', $this->freezeTime(fn () => 42));
         assertType('42', $this->freezeTime(fn (CarbonInterface $date) => 42));
 
-        assertType(CarbonInterface::class, $this->freezeSecond());
+        assertType(BaseCarbonImmutable::class, $this->freezeSecond());
         assertType('42', $this->freezeSecond(fn () => 42));
         assertType('42', $this->freezeSecond(fn (CarbonInterface $date) => 42));
 

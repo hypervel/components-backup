@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Support;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\CarbonInterval;
 use DateInterval;
 use Hypervel\Engine\Coroutine;
@@ -703,9 +704,9 @@ class SleepTest extends TestCase
         $this->assertSame('2000-01-01 00:05:03', $now->toDateTimeString());
     }
 
-    public function testItCanSyncCarbonUsingTheMutableDateFactoryOptOut(): void
+    public function testItCanSyncCarbonUsingACustomImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
         Carbon::setTestNow('2000-01-01 00:00:00');
         Sleep::fake();
         Sleep::syncWithCarbon();
@@ -715,7 +716,7 @@ class SleepTest extends TestCase
 
         $now = Date::now();
 
-        $this->assertSame(Carbon::class, $now::class);
+        $this->assertSame(BaseCarbonImmutable::class, $now::class);
         $this->assertSame('2000-01-01 00:05:03', $now->toDateTimeString());
     }
 

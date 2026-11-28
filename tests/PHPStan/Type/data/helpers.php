@@ -3,6 +3,8 @@
 namespace Helpers;
 
 use App\User;
+use Carbon\CarbonImmutable;
+use Hypervel\Support\Facades\Date;
 use Exception;
 use Hypervel\Contracts\Routing\ResponseFactory;
 use Hypervel\PHPStan\ApplicationResolver;
@@ -42,7 +44,9 @@ function test(?int $value = 0, int|\Closure $intOrClosure = 0, int|\Closure $int
     assertType('Hypervel\Contracts\Auth\Authenticatable|false', auth()->loginUsingId(1));
     assertType('null', auth()->login(new User()));
 
-    // REMOVED: now() and today() assertions; their CarbonInterface return types come from source, and date-extension.php covers the omitted extension.
+    assertType(CarbonImmutable::class, now());
+    assertType(CarbonImmutable::class, today());
+    assertType(CarbonImmutable::class, Date::parse('2030-01-01'));
 
     assertType('Hypervel\Http\RedirectResponse', redirect('/'));
     assertType('Hypervel\Routing\Redirector', redirect());

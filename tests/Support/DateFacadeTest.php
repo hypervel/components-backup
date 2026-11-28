@@ -20,6 +20,7 @@ use Hypervel\Tests\TestCase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use stdClass;
+use UnexpectedValueException;
 
 class DateFacadeTest extends TestCase
 {
@@ -55,27 +56,27 @@ class DateFacadeTest extends TestCase
         $this->assertFalse($container->bound('date'));
     }
 
-    public function testMutableClassIsAnExplicitOptOutAcrossDateRoutes(): void
+    public function testCallableTransformsDatesAndPreservesOtherResults(): void
     {
-        DateFactory::use(Carbon::class);
+        DateFactory::use(static fn (CarbonImmutable $date): CarbonImmutable => $date->addDay());
 
-        $this->assertSame(Carbon::class, Date::now()::class);
-        $this->assertSame(Carbon::class, Date::parse('2026-07-22')::class);
-        $this->assertSame(Carbon::class, Date::today()::class);
-        $this->assertSame(Carbon::class, now()::class);
-        $this->assertSame(Carbon::class, today()::class);
+        $this->assertSame('2026-07-23', Date::parse('2026-07-22')->toDateString());
+        $this->assertNull(Date::make(null));
+        $this->assertIsString(Date::getLocale());
+
+        $clock = static fn (): CarbonImmutable => CarbonImmutable::parse('2026-07-22');
+        Date::setTestNow($clock);
+        $this->assertSame($clock, Date::getTestNow());
+        $external = Carbon::parse('2026-07-22');
+        $this->assertSame($external, Date::withTestNow(null, static fn (): Carbon => $external));
     }
 
-    public function testUseClosureCanTransformTheGeneratedCarbonValue(): void
+    public function testCallableCannotReturnAMutableDate(): void
     {
-        DateFactory::use(function (CarbonImmutable $date): Carbon {
-            return $date->toMutable()->addDay();
-        });
+        DateFactory::use(static fn (CarbonImmutable $date): Carbon => $date->toMutable());
 
-        $date = Date::parse('2026-07-22 12:34:56');
-
-        $this->assertSame(Carbon::class, $date::class);
-        $this->assertSame('2026-07-23 12:34:56', $date->toDateTimeString());
+        $this->expectException(UnexpectedValueException::class);
+        Date::parse('2026-07-22');
     }
 
     public function testUseSupportsInvokableObjectsAndCallableStrings(): void
@@ -90,9 +91,7 @@ class DateFacadeTest extends TestCase
     public function testConcreteCarbonClassHandlersReturnTheExactConfiguredClass(): void
     {
         foreach ([
-            Carbon::class,
             CarbonImmutable::class,
-            BaseCarbon::class,
             BaseCarbonImmutable::class,
             DateFacadeCustomCarbon::class,
         ] as $dateClass) {
@@ -102,13 +101,13 @@ class DateFacadeTest extends TestCase
         }
     }
 
-    public function testMutableAndImmutableFactoriesReturnTheirConfiguredClasses(): void
+    public function testFactoriesReturnTheirConfiguredImmutableClasses(): void
     {
-        DateFactory::use(new Factory(['locale' => 'fr'], Carbon::class));
-        $mutable = Date::now();
+        DateFactory::use(new Factory(['locale' => 'fr'], BaseCarbonImmutable::class));
+        $date = Date::now();
 
-        $this->assertSame(Carbon::class, $mutable::class);
-        $this->assertSame('fr', $mutable->locale());
+        $this->assertSame(BaseCarbonImmutable::class, $date::class);
+        $this->assertSame('fr', $date->locale());
 
         DateFactory::use(new FactoryImmutable(['locale' => 'de'], CarbonImmutable::class));
         $immutable = Date::now();
@@ -117,9 +116,22 @@ class DateFacadeTest extends TestCase
         $this->assertSame('de', $immutable->locale());
     }
 
+    public function testFactoryCreatorsMustReturnImmutableDates(): void
+    {
+        DateFactory::useFactory(new class([], CarbonImmutable::class) extends Factory {
+            public function today(): Carbon
+            {
+                return Carbon::today();
+            }
+        });
+
+        $this->expectException(UnexpectedValueException::class);
+        Date::today();
+    }
+
     public function testFactoryTimezoneConfigurationReturnsAClonedFactory(): void
     {
-        $factory = new Factory;
+        $factory = new Factory([], CarbonImmutable::class);
         DateFactory::use($factory);
 
         $configured = Date::withTimeZone('America/Toronto');
@@ -131,8 +143,8 @@ class DateFacadeTest extends TestCase
 
     public function testFlushStateRestoresDefaultDateFactory(): void
     {
-        DateFactory::use(Carbon::class);
-        $this->assertSame(Carbon::class, Date::now()::class);
+        DateFactory::use(DateFacadeCustomCarbon::class);
+        $this->assertSame(DateFacadeCustomCarbon::class, Date::now()::class);
 
         DateFactory::flushState();
 
@@ -155,6 +167,8 @@ class DateFacadeTest extends TestCase
     public static function invalidClassHandlerProvider(): array
     {
         return [
+            'mutable Hypervel Carbon' => [Carbon::class],
+            'mutable Carbon' => [BaseCarbon::class],
             'native DateTime' => [DateTime::class],
             'Carbon interface' => [CarbonInterface::class],
             'abstract Carbon class' => [DateFacadeAbstractCarbon::class],
@@ -198,7 +212,7 @@ class DateFacadeNonCarbonWrapper
 
 class DateFacadeInvokableHandler
 {
-    public function __invoke(CarbonImmutable $date): CarbonInterface
+    public function __invoke(CarbonImmutable $date): CarbonImmutable
     {
         return $date->addDay();
     }
@@ -206,7 +220,7 @@ class DateFacadeInvokableHandler
 
 class DateFacadeCallableHandler
 {
-    public static function handle(CarbonImmutable $date): CarbonInterface
+    public static function handle(CarbonImmutable $date): CarbonImmutable
     {
         return $date->addDays(2);
     }

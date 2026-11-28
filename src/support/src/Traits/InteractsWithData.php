@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hypervel\Support\Traits;
 
 use BackedEnum;
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\CarbonInterface;
 use Carbon\CarbonInterval;
 use Carbon\Exceptions\InvalidFormatException;
@@ -383,6 +384,7 @@ trait InteractsWithData
     /**
      * Retrieve data from the instance as a Carbon instance.
      *
+     * @return null|BaseCarbonImmutable
      * @throws InvalidFormatException
      */
     public function date(string $key, ?string $format = null, UnitEnum|string|null $tz = null): ?CarbonInterface

@@ -91,4 +91,9 @@ class Schedule
         $date->addDay(...);
         $date->dayOfYear(...);
     }
+
+    public function factoryDate(): void
+    {
+        now()->addDay();
+    }
 }

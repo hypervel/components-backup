@@ -77,24 +77,15 @@ Redis Cluster settings belong to each named connection. The top-level `database.
 <a name="immutable-dates"></a>
 ## Immutable Dates
 
-Hypervel's date factory, `now()` and `today()` helpers, ordinary Eloquent date casts, and request date casts now return `Hypervel\Support\CarbonImmutable` by default. Review concrete `Hypervel\Support\Carbon` type declarations that receive factory-created values and change configurable boundaries to `Carbon\CarbonInterface`, or use `CarbonImmutable` when the value must always be immutable.
+The `Date` facade and the `now()` and `today()` helpers return `Carbon\CarbonImmutable` instances. Hypervel uses `Hypervel\Support\CarbonImmutable` by default. Replace mutable date classes configured during boot with immutable classes, and ensure custom factories and date callbacks return immutable dates. Ordinary Eloquent and request date casts use this factory.
 
-Immutable date modifiers return a new instance. Assign the result whenever the changed value must be retained:
+Assign the result when changing a date:
 
 ```php
 $expiresAt = $expiresAt->addMinutes(5);
 ```
 
-Applications that deliberately require mutable dates may opt out during application boot:
-
-```php
-use Hypervel\Support\Carbon;
-use Hypervel\Support\Facades\Date;
-
-Date::use(Carbon::class);
-```
-
-Custom date classes configured through `Date::use()` or `Date::useClass()` must implement `Carbon\CarbonInterface`. Callable date handlers may transform the generated value into another mutable or immutable Carbon implementation, but must also return a `CarbonInterface` because typed helpers and other factory-routed APIs enforce that contract.
+Change `Hypervel\Support\Carbon` type declarations that receive factory-created dates to `Carbon\CarbonImmutable`, or to `Carbon\CarbonInterface` if they also accept mutable dates. Use `$date->toMutable()` when an integration requires a mutable value.
 
 <a name="migration-references"></a>
 ## Migration References

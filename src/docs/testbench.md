@@ -574,18 +574,6 @@ class CourierLiveApiTest extends TestCase
 }
 ```
 
-Hypervel uses immutable dates by default. The `#[WithImmutableDates]` attribute explicitly restores that default for the duration of a test, which is useful when the tested application or package bootstrap deliberately configures mutable dates:
-
-```php
-use Hypervel\Testbench\Attributes\WithImmutableDates;
-
-#[WithImmutableDates]
-class CourierDateTest extends TestCase
-{
-    //
-}
-```
-
 If a test runs a command in a subprocess and that command needs the package's Composer dependencies inside the runtime skeleton, use the `#[UsesVendor]` attribute:
 
 ```php

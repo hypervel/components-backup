@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Carbon\CarbonInterface;
+use Carbon\CarbonImmutable;
 use Faker\Factory as FakerFactory;
 use Faker\Generator as FakerGenerator;
 use Hypervel\Broadcasting\FakePendingBroadcast;
@@ -623,7 +623,7 @@ if (! function_exists('now')) {
     /**
      * Create a new configured Carbon instance for the current time.
      */
-    function now(\UnitEnum|\DateTimeZone|string|null $tz = null): CarbonInterface
+    function now(\UnitEnum|\DateTimeZone|string|null $tz = null): CarbonImmutable
     {
         return Date::now(enum_value($tz));
     }
@@ -969,7 +969,7 @@ if (! function_exists('today')) {
     /**
      * Create a new configured Carbon instance for the current date.
      */
-    function today(\UnitEnum|\DateTimeZone|string|null $tz = null): CarbonInterface
+    function today(\UnitEnum|\DateTimeZone|string|null $tz = null): CarbonImmutable
     {
         return Date::today(enum_value($tz));
     }

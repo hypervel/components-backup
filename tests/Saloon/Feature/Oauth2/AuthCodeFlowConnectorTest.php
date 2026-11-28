@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Saloon\Feature\Oauth2;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use DateTimeImmutable;
 use Hypervel\Contracts\Foundation\Application as ApplicationContract;
 use Hypervel\Saloon\Exceptions\InvalidStateException;
@@ -20,7 +21,6 @@ use Hypervel\Saloon\Http\PendingRequest;
 use Hypervel\Saloon\Http\Request;
 use Hypervel\Saloon\Http\Response;
 use Hypervel\Saloon\SaloonServiceProvider;
-use Hypervel\Support\Carbon;
 use Hypervel\Support\CarbonImmutable;
 use Hypervel\Support\Facades\Date;
 use Hypervel\Testbench\TestCase;
@@ -229,9 +229,9 @@ class AuthCodeFlowConnectorTest extends TestCase
         $this->assertEquals($now->modify('+3600 seconds'), $authenticator->getExpiresAt());
     }
 
-    public function testExpiriesStayImmutableWhenDateCreatesMutableDates(): void
+    public function testExpiriesStayImmutableWhenDateCreatesBaseCarbonImmutable(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
         Date::setTestNow('2026-01-01T00:00:00+00:00');
         Saloon::fake([
             MockResponse::make(['access_token' => 'access', 'expires_in' => 3600]),

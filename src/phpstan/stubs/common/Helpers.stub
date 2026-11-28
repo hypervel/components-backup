@@ -29,4 +29,4 @@ function view(?string $view = null, array|Arrayable $data = [], array $mergeData
 // the source declares their types, and an env() default does not decide the type of the value read.
 
 // Upstream's NowAndTodayExtension and DateExtension are omitted: they type dates as the class of
-// now() when analysis runs, while now(), today() and the Date facade declare CarbonInterface.
+// now() when analysis runs. The helpers and facade declare the immutable creator types.

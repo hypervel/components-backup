@@ -158,9 +158,9 @@ class ModelPropertyHelperTest extends PHPStanTestCase
     public function itReadsNullAsTheConnectionsFetchOptionsProduceIt(): void
     {
         $cases = [
-            PDO::NULL_NATURAL => ['Carbon\CarbonInterface', 'mixed~null', 'mixed', 'array', 'array|null'],
-            PDO::NULL_EMPTY_STRING => ['Carbon\CarbonInterface|null', 'mixed', 'mixed', 'array|null', 'array|null'],
-            PDO::NULL_TO_STRING => ['Carbon\CarbonInterface', 'mixed~null', 'mixed~null', 'array', 'array|null'],
+            PDO::NULL_NATURAL => ['Carbon\CarbonImmutable', 'mixed~null', 'mixed', 'array', 'array|null'],
+            PDO::NULL_EMPTY_STRING => ['Carbon\CarbonImmutable|null', 'mixed', 'mixed', 'array|null', 'array|null'],
+            PDO::NULL_TO_STRING => ['Carbon\CarbonImmutable', 'mixed~null', 'mixed~null', 'array', 'array|null'],
         ];
 
         foreach ($cases as $nulls => [$createdAt, $payload, $extra, $castPayload, $castExtra]) {

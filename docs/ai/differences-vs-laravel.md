@@ -69,7 +69,7 @@ Hypervel caches more aggressively than Laravel: any class resolved via `make()` 
 
 ## Dates
 
-- Hypervel's `Date` facade, `now()` / `today()` helpers, and ordinary Eloquent date casts return `Hypervel\Support\CarbonImmutable` by default. Assign date-modifier results (`$date = $date->addDay()`) when retaining the changed value. Applications that deliberately need Laravel's mutable default may configure `Date::use(Hypervel\Support\Carbon::class)` during boot.
+- Hypervel's `Date` facade, `now()` / `today()` helpers, and ordinary Eloquent date casts return `Hypervel\Support\CarbonImmutable` by default. Assign date-modifier results (`$date = $date->addDay()`) when retaining the changed value. Custom date factories must produce immutable dates. Use `toMutable()` when an integration requires a mutable value.
 
 ## Event Dispatch
 

@@ -468,20 +468,20 @@ class DataObjectTest extends TestCase
 
     public function testConfiguredDateFactoryOwnsInterfaceTargets(): void
     {
-        DateFactory::use(Carbon::class);
+        DateFactory::use(BaseCarbonImmutable::class);
 
         $data = DateInterfaceDataObject::from([
             'date' => '2026-09-05 12:34:56',
             'carbon' => '2026-09-05 12:34:56',
         ]);
 
-        $this->assertSame(Carbon::class, $data->date::class);
-        $this->assertSame(Carbon::class, $data->carbon::class);
+        $this->assertSame(BaseCarbonImmutable::class, $data->date::class);
+        $this->assertSame(BaseCarbonImmutable::class, $data->carbon::class);
     }
 
     public function testDateInterfacesPassThroughMatchingValuesAndAdaptNativeValuesToCarbon(): void
     {
-        DateFactory::use(Carbon::class);
+        DateFactory::use(BaseCarbonImmutable::class);
         $native = new DateTimeImmutable('2026-09-05T12:34:56.123456+02:00');
 
         $data = DateInterfaceDataObject::from([
@@ -490,7 +490,7 @@ class DataObjectTest extends TestCase
         ]);
 
         $this->assertSame($native, $data->date);
-        $this->assertSame(Carbon::class, $data->carbon::class);
+        $this->assertSame(BaseCarbonImmutable::class, $data->carbon::class);
         $this->assertSame($native->format('U.u'), $data->carbon->format('U.u'));
     }
 

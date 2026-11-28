@@ -795,7 +795,7 @@ Hypervel's date factory, `now()` and `today()` helpers, ordinary Eloquent date c
 $expiresAt = $expiresAt->addMinutes(5);
 ```
 
-Review concrete `Hypervel\Support\Carbon` type declarations that receive factory-created values. Use `Carbon\CarbonInterface` at boundaries that may receive mutable or immutable dates, or `CarbonImmutable` when immutability is required. An application that deliberately requires mutable dates may configure the date factory during application boot. See the [date and time documentation](/docs/{{version}}/helpers#dates).
+Review concrete `Hypervel\Support\Carbon` type declarations that receive factory-created values. Use `Carbon\CarbonInterface` at boundaries that may receive mutable or immutable dates, or `CarbonImmutable` when immutability is required. Use `toMutable()` for an integration that needs a mutable date. Laravel starter kits may configure Carbon's base immutable class at boot. Remove that override to use Hypervel's default class and its additional methods. Keep per-request formatting local with `$date->locale($locale)`, since Carbon's global locale is shared across requests. See the [date and time documentation](/docs/{{version}}/helpers#dates).
 
 The framework binds `date` to `DateFactory`, so a `Date` facade subclass that overrides `DEFAULT_FACADE` no longer supplies the factory in a booted application. Bind `date` to your factory in a service provider instead.
 
