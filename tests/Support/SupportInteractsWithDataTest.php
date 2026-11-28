@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Support;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Hypervel\Container\Container;
 use Hypervel\Foundation\Application;
 use Hypervel\Support\Carbon;
@@ -275,14 +276,14 @@ class SupportInteractsWithDataTest extends TestCase
         $this->assertEquals('2024-01-15 10:30:00', $result->format('Y-m-d H:i:s'));
     }
 
-    public function testDateHonorsTheMutableDateFactoryOptOut(): void
+    public function testDateUsesTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
         $instance = static::arrayToDataFactory(['date' => '2024-01-15 10:30:00']);
 
         $result = $instance->date('date');
 
-        $this->assertSame(Carbon::class, $result::class);
+        $this->assertSame(BaseCarbonImmutable::class, $result::class);
     }
 
     public function testDateParsesWithFormat(): void

@@ -32,7 +32,6 @@ use Hypervel\Coroutine\Exceptions\ChildCancellationException;
 use Hypervel\Coroutine\SignalRegistry;
 use Hypervel\Engine\Channel;
 use Hypervel\Log\Context\Repository as ContextRepository;
-use Hypervel\Support\Carbon;
 use Hypervel\Support\CarbonImmutable;
 use Hypervel\Support\Collection;
 use Hypervel\Support\Facades\Date;
@@ -1266,10 +1265,8 @@ class ScheduleRunCommandTest extends TestCase
         $this->assertStringNotContainsString('No scheduled commands are ready to run.', $display);
     }
 
-    #[DataProvider('dateClassProvider')]
-    public function testRepeatEventsPreservesOriginalStartForSingleServerMutex(string $dateClass): void
+    public function testRepeatEventsPreservesOriginalStartForSingleServerMutex(): void
     {
-        Date::use($dateClass);
         Date::setTestNow('2026-05-28 12:34:00');
         Sleep::fake();
 
@@ -1299,20 +1296,8 @@ class ScheduleRunCommandTest extends TestCase
 
         $this->invokeRepeatEvents($command, [$callbackEvent]);
 
-        $this->assertSame($dateClass, $startedAt::class);
         $this->assertSame($expectedStartedAt, $startedAt->format('Y-m-d H:i:s'));
         Sleep::assertSleptTimes(1);
-    }
-
-    /**
-     * Provide mutable and immutable Date factory classes.
-     */
-    public static function dateClassProvider(): array
-    {
-        return [
-            'immutable default' => [CarbonImmutable::class],
-            'mutable opt-out' => [Carbon::class],
-        ];
     }
 
     public function testRepeatEventsUseTheBackgroundDispatchPath(): void

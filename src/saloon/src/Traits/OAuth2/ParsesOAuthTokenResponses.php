@@ -78,7 +78,7 @@ trait ParsesOAuthTokenResponses
             throw new UnexpectedValueException('The OAuth token response contains an invalid expiry duration.');
         }
 
-        // Date may be configured to create mutable dates, so copy the clock into an immutable expiry.
+        // The application clock may use a different immutable Carbon class.
         $now = CarbonImmutable::instance(Date::now());
 
         if ($now->getTimestamp() > PHP_INT_MAX - $expiresIn) {

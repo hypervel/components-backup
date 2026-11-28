@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Foundation\Providers;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Hypervel\Console\Scheduling\Schedule;
 use Hypervel\Contracts\Console\Kernel;
 use Hypervel\Contracts\Foundation\MaintenanceMode as MaintenanceModeContract;
@@ -128,9 +129,9 @@ class FoundationServiceProviderTest extends TestCase
         $this->assertSame(Date::now()->format('Y-m-d H:i:s.u P'), $clockNow->format('Y-m-d H:i:s.u P'));
     }
 
-    public function testClockReturnsCarbonImmutableWhenDateFacadeUsesMutableCarbon(): void
+    public function testClockReturnsCarbonImmutableWhenDateFacadeUsesBaseCarbonImmutable(): void
     {
-        Date::useClass(Carbon::class);
+        Date::useClass(BaseCarbonImmutable::class);
 
         $this->assertSame(
             CarbonImmutable::class,

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Foundation\Testing\Concerns;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Closure;
 use DateTimeInterface;
@@ -18,8 +19,8 @@ trait InteractsWithTime
      *
      * @template TReturn
      *
-     * @param null|(callable(CarbonInterface): TReturn) $callback
-     * @return ($callback is null ? CarbonInterface : TReturn)
+     * @param null|(callable(CarbonImmutable): TReturn) $callback
+     * @return ($callback is null ? CarbonImmutable : TReturn)
      */
     public function freezeTime(?callable $callback = null): mixed
     {
@@ -33,8 +34,8 @@ trait InteractsWithTime
      *
      * @template TReturn
      *
-     * @param null|(callable(CarbonInterface): TReturn) $callback
-     * @return ($callback is null ? CarbonInterface : TReturn)
+     * @param null|(callable(CarbonImmutable): TReturn) $callback
+     * @return ($callback is null ? CarbonImmutable : TReturn)
      */
     public function freezeSecond(?callable $callback = null): mixed
     {
@@ -78,6 +79,8 @@ trait InteractsWithTime
 
     /**
      * Travel back to the current time.
+     *
+     * @return CarbonImmutable
      */
     public function travelBack(): CarbonInterface
     {

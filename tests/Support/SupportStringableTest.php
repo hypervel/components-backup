@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Support;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Hypervel\Container\Container;
 use Hypervel\Encryption\Encrypter;
-use Hypervel\Support\Carbon;
 use Hypervel\Support\CarbonImmutable;
 use Hypervel\Support\Collection;
 use Hypervel\Support\Facades\Date;
@@ -1693,12 +1693,12 @@ class SupportStringableTest extends TestCase
         $this->assertTrue($this->stringable('16:30:25')->toDate()->isSameSecond('16:30:25'));
     }
 
-    public function testToDateUsesConfiguredMutableClass(): void
+    public function testToDateUsesConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
-        $this->assertSame(Carbon::class, $this->stringable('2020-01-01')->toDate()::class);
-        $this->assertSame(Carbon::class, $this->stringable('2020-01-01')->toDate('Y-m-d')::class);
+        $this->assertSame(BaseCarbonImmutable::class, $this->stringable('2020-01-01')->toDate()::class);
+        $this->assertSame(BaseCarbonImmutable::class, $this->stringable('2020-01-01')->toDate('Y-m-d')::class);
     }
 
     public function testToDateReturnsNullWhenFormattedCreationFailsInNonStrictMode(): void

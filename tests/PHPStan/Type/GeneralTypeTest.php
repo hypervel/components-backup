@@ -59,7 +59,7 @@ class GeneralTypeTest extends TypeInferenceTestCase
         yield from self::gatherAssertTypes(__DIR__ . '/data/custom-eloquent-collection.php');
         yield from self::gatherAssertTypes(__DIR__ . '/data/custom-query-collections.php');
         yield from self::gatherAssertTypes(__DIR__ . '/data/database-transaction.php');
-        // REMOVED: date-extension.php; DateExtension is omitted because the Date facade declares CarbonInterface.
+        // REMOVED: date-extension.php; DateExtension is omitted because the Date facade declares immutable creator types.
         // Hypervel: covers the per-key eager-load, aggregate and morph map types.
         yield from self::gatherAssertTypes(__DIR__ . '/data/eager-load-maps.php');
         yield from self::gatherAssertTypes(__DIR__ . '/data/eager-loading-callbacks.php');

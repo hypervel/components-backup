@@ -684,7 +684,7 @@ A non-incrementing primary key may also use `AsBinary` for model-instance writes
 <a name="date-casting"></a>
 ### Date Casting
 
-By default, Eloquent will cast the `created_at` and `updated_at` columns to `Hypervel\Support\CarbonImmutable` instances. Carbon provides an assortment of helpful date and time methods while immutable instances ensure modifiers return new values instead of changing the original. You may cast additional date attributes by defining `date` or `datetime` casts within your model's `casts` method. These casts use Hypervel's configured date factory and are immutable by default. The `immutable_date` and `immutable_datetime` casts always return `CarbonImmutable`, even when an application explicitly configures the date factory to create mutable dates.
+By default, Eloquent will cast the `created_at` and `updated_at` columns to `Hypervel\Support\CarbonImmutable` instances. Carbon provides an assortment of helpful date and time methods while immutable instances ensure modifiers return new values instead of changing the original. You may cast additional date attributes by defining `date` or `datetime` casts within your model's `casts` method. These casts use Hypervel's immutable date factory. The `immutable_date` and `immutable_datetime` casts also ensure an immutable result when a model overrides date conversion.
 
 When defining a `date` or `datetime` cast, you may also specify the date's format. This format will be used when the [model is serialized to an array or JSON](/docs/{{version}}/eloquent-serialization):
 

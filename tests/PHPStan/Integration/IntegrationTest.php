@@ -196,14 +196,15 @@ class IntegrationTest extends PHPStanTestCase
             ],
         ];
 
-        // Hypervel: User's public email() accessor reads as mixed; date attributes read as CarbonInterface; SQLite
+        // Hypervel: User's public email() accessor reads as mixed; date attributes read as CarbonImmutable; SQLite
         // has no unsigned columns; AsEnumCollection also stores the enum's backing values; mutable dates are reported.
         yield [
             __DIR__ . '/data/model-properties.php',
             [
                 31 => ['Carbon\Carbon::now() creates a mutable date.'],
+                69 => ['Function testDateCast() never returns Carbon\Carbon so it can be removed from the return type.'],
                 71 => ['Expected type string, actual: mixed'],
-                74 => ['Function testDateCast() should return Carbon\Carbon|null but returns Carbon\CarbonInterface|null.'],
+                74 => ['Function testDateCast() should return Carbon\Carbon|null but returns Carbon\CarbonImmutable|null.'],
                 87 => ['Carbon\Carbon::now() creates a mutable date.'],
                 100 => ['Property App\User::$decimal (float|int|numeric-string) does not accept \'foo\'.'],
                 101 => ['Property App\User::$decimal (float|int|numeric-string) does not accept array{}.'],

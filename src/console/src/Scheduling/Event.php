@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Console\Scheduling;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Closure;
 use Cron\CronExpression;
@@ -897,6 +898,8 @@ class Event
 
     /**
      * Determine the next due date for an event.
+     *
+     * @return CarbonImmutable
      */
     public function nextRunDate(DateTimeInterface|string $currentTime = 'now', int $nth = 0, bool $allowCurrentDate = false): CarbonInterface
     {

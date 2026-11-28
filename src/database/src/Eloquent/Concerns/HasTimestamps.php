@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Database\Eloquent\Concerns;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Hypervel\Context\CoroutineContext;
 use Hypervel\Database\Eloquent\Attributes\Initialize;
@@ -130,6 +131,8 @@ trait HasTimestamps
 
     /**
      * Get a fresh timestamp for the model.
+     *
+     * @return CarbonImmutable
      */
     public function freshTimestamp(): CarbonInterface
     {

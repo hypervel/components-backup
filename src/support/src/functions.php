@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Support;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\CarbonInterface;
 use Carbon\CarbonInterval;
 use DateTimeZone;
@@ -99,7 +100,7 @@ function throw_with_previous(Throwable $failure, Throwable $previous): never
 /**
  * Create a new configured Carbon instance for the current time.
  */
-function now(DateTimeZone|UnitEnum|string|null $tz = null): CarbonInterface
+function now(DateTimeZone|UnitEnum|string|null $tz = null): BaseCarbonImmutable
 {
     return Date::now(enum_value($tz));
 }

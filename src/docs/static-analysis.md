@@ -257,7 +257,7 @@ PHPStan reuses cached results for unchanged code. Changes to the environment, se
 
 Use typed request helpers such as `$request->string()`, `integer()` and `boolean()` when you need a specific type. Values read by key using `query()`, `post()` or `cookie()` may be strings, numbers, booleans, arrays or `Stringable` objects. Input arrays may also have integer keys, such as those from a JSON list body.
 
-The `now()` and `today()` helpers and the `Date` facade return `CarbonInterface`, even when you configure a specific date class. Use a conversion method such as `toImmutable()` when you need a more specific type.
+The `now()` and `today()` helpers and the `Date` facade return `Carbon\CarbonImmutable` when creating dates, including when the application configures an immutable subclass.
 
 Model factories retain their model types: `User::factory()->create()` returns a `User`, while `User::factory(3)->create()` returns a collection. The `createMany`, `createManyQuietly` and `makeMany` methods reset the factory's count. If you reuse that factory, assign these methods' results before passing them to another call so PHPStan can track the reset. Factories with their own `@template` declarations keep their generic types and may return either a model or a collection.
 
@@ -1021,7 +1021,7 @@ $deadline = $deadline->addDays(7);
 
 Discarding the result of a Carbon modifier or setter, such as `setTime`, `timezone` or `year(2026)`, is reported. Methods such as `dayOfYear()` read a value when called without an argument and are reported only when they set one, as in `dayOfYear(100)`.
 
-For a `CarbonImmutable`, the diagnostic says the date is unchanged. For a `CarbonInterface`, including the result of `now()`, it says the change may be lost because the date could be mutable or immutable. Mutable `Carbon` dates change in place and are not reported. You may disable the check using the `checkDiscardedDates` parameter.
+For a `CarbonImmutable`, including the result of `now()`, the diagnostic says the date is unchanged. For a `CarbonInterface` supplied by a caller, it says the change may be lost because the date could be mutable or immutable. Mutable `Carbon` dates change in place and are not reported. You may disable the check using the `checkDiscardedDates` parameter.
 
 <a name="translations"></a>
 ### Translations

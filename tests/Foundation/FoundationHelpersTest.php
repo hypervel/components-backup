@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Foundation\FoundationHelpersTest;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use DateTimeZone;
 use Hypervel\Broadcasting\FakePendingBroadcast;
 use Hypervel\Broadcasting\PendingBroadcast;
@@ -82,11 +83,11 @@ class FoundationHelpersTest extends TestCase
         $this->assertSame(CarbonImmutable::class, $result::class);
     }
 
-    public function testNowHonorsTheMutableDateFactoryOptOut(): void
+    public function testNowUsesTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
-        $this->assertSame(Carbon::class, now()::class);
+        $this->assertSame(BaseCarbonImmutable::class, now()::class);
     }
 
     public function testNowWithStringTimezone(): void
@@ -146,11 +147,11 @@ class FoundationHelpersTest extends TestCase
         $this->assertEquals('00:00:00', $result->format('H:i:s'));
     }
 
-    public function testTodayHonorsTheMutableDateFactoryOptOut(): void
+    public function testTodayUsesTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
-        $this->assertSame(Carbon::class, today()::class);
+        $this->assertSame(BaseCarbonImmutable::class, today()::class);
     }
 
     public function testTodayWithStringTimezone(): void

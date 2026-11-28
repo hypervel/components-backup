@@ -44,9 +44,9 @@ class DateFactoryTest extends TestCase
         ];
     }
 
-    public function testDateAndDatetimeCastsRespectMutableOptOut(): void
+    public function testDateAndDatetimeCastsRespectTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
         $model = new DateFactoryDateCastModel;
         $model->setRawAttributes([
@@ -54,16 +54,19 @@ class DateFactoryTest extends TestCase
             'event_datetime' => '2024-01-15 10:30:00',
         ]);
 
-        $this->assertSame(Carbon::class, $model->event_date::class);
-        $this->assertSame(Carbon::class, $model->event_datetime::class);
+        $this->assertSame(BaseCarbonImmutable::class, $model->event_date::class);
+        $this->assertSame(BaseCarbonImmutable::class, $model->event_datetime::class);
         $this->assertSame('00:00:00', $model->event_date->format('H:i:s'));
     }
 
-    public function testImmutableCastsRemainHypervelImmutableDuringMutableOptOut(): void
+    public function testImmutableCastsConvertResultsFromAMutableModelOverride(): void
     {
-        Date::use(Carbon::class);
-
-        $model = new DateFactoryDateCastModel;
+        $model = new class extends DateFactoryDateCastModel {
+            protected function asDateTime(mixed $value): Carbon
+            {
+                return Carbon::parse($value);
+            }
+        };
         $model->setRawAttributes([
             'immutable_event_date' => '2024-01-15',
             'immutable_event_datetime' => '2024-01-15 10:30:00',
@@ -81,9 +84,9 @@ class DateFactoryTest extends TestCase
         $this->assertSame(CarbonImmutable::class, (new DateFactoryTestPivot)->freshTimestamp()::class);
         $this->assertSame(CarbonImmutable::class, (new DateFactoryTestMorphPivot)->freshTimestamp()::class);
 
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
-        $this->assertSame(Carbon::class, $model->freshTimestamp()::class);
+        $this->assertSame(BaseCarbonImmutable::class, $model->freshTimestamp()::class);
     }
 
     public function testAsDateTimeWithNullReturnsNull(): void

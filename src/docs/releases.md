@@ -70,7 +70,7 @@ Some differences are intentional. Hypervel uses `Hypervel\` namespaces, adapts i
 <a name="immutable-dates"></a>
 ### Immutable Dates
 
-Hypervel 0.4 uses `Hypervel\Support\CarbonImmutable` as the modern default for date helpers, factory-created dates, Eloquent date casts, request casts, and framework-owned timestamps. Immutable values provide predictable value semantics, with additional safety when dates are retained or shared in long-lived workers. Applications may still opt into the explicit mutable `Hypervel\Support\Carbon` class through the `Date` facade.
+Hypervel 0.4 uses `Hypervel\Support\CarbonImmutable` as the modern default for date helpers, factory-created dates, Eloquent date casts, request casts, and framework-owned timestamps. Immutable values provide predictable value semantics, with additional safety when dates are retained or shared in long-lived workers. Custom factories must also produce immutable dates. Use `toMutable()` when a library requires a mutable date.
 
 <a name="coroutine-safety"></a>
 ### Coroutine Safety

@@ -225,7 +225,7 @@ Build complete, long-term solutions, not MVPs or local workarounds. A broad chan
 - **Guard optional event dispatches with `hasListeners()`** — before constructing and dispatching framework events, guard them with `hasListeners()` so hot paths skip event overhead when nobody is listening. Bare `*` listeners are passive observers and do not count; targeted wildcards do. Do not guard dispatches where dispatching is the side effect, such as jobs, broadcasts, webhooks, or command bus calls.
 - **Use `Sleep::usleep()` / `Sleep::sleep()` for delays in source code** — `Sleep` is fakeable in tests. Use raw `sleep()` / `usleep()` only where real time must pass, such as test harnesses and external-process polling.
 - **Use `xxh128` for internal non-cryptographic hashing** — cache and context keys, content checksums, and change detection. It is faster than `sha256`, which is reserved for trust boundaries: stored credential digests, signatures, and anything an attacker gains by forging. Seed it when the hashed value comes from user input, as `SwooleStore` does for its physical table keys.
-- **Use immutable dates by default** — Hypervel defaults to `Hypervel\Support\CarbonImmutable`, including where Laravel uses mutable Carbon. Create public or application-configurable dates through the `Date` facade or date helpers, and use exact `CarbonImmutable` for framework-owned internal or held values. Type configurable Carbon boundaries as `CarbonInterface` and native or third-party boundaries as `DateTimeInterface`. Capture the return value of every date modifier whose result must persist. Use `Hypervel\Support\Carbon` only for explicit mutable opt-out or conversion behavior.
+- **Use immutable dates** — For application-configurable dates, use `Date`, `now()` or `today()`. They create `Carbon\CarbonImmutable` instances. Use `Hypervel\Support\CarbonImmutable` for framework-owned dates. Keep the result when changing the date, time or timezone. Accept `CarbonInterface` for Carbon inputs and `DateTimeInterface` for native dates. Use `toMutable()` when an integration requires a mutable date.
 - **Always use American English spelling** — E.g., "behavior" vs "behaviour", "utilize" vs "utilise".
 
 ### Configuration
@@ -804,7 +804,7 @@ When porting Laravel packages, whether first-party or third-party, keep them as 
 - Modernizing PHP types, including native parameter, return, property, and class-constant types, plus other appropriate PHP 8.4+ features, strict types, and strict comparisons
 - Applying the class-import convention, including its exceptions
 - Converting direct Mockery test doubles to Double under [Test doubles](#test-doubles)
-- Converting mutable Laravel date construction to Hypervel's immutable date conventions, typing configurable factory output as `CarbonInterface`, and capturing date-modifier return values
+- Applying Hypervel's immutable date conventions to Laravel date construction and modifiers
 - Converting container array access (`$app['events']`) and dynamic service-property access (`$app->events`) in ported code to named container methods, and applying the Configuration rules to ported config and its consumers
 - Adding Laravel-style title docblocks to methods (not classes — see Development Conventions)
 - Formatting JavaScript, TypeScript, Vue and frontend CSS sources with the repository's Vite+ formatter configuration, preserving upstream logic, naming, structure and comments

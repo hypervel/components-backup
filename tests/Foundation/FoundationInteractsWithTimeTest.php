@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Foundation;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use DateInterval;
 use Hypervel\Foundation\Testing\Concerns\InteractsWithTime;
 use Hypervel\Support\Carbon;
@@ -26,13 +27,13 @@ class FoundationInteractsWithTimeTest extends TestCase
         $this->assertTrue(Carbon::getTestNow()->eq($actual));
     }
 
-    public function testFreezeTimeHonorsTheMutableDateFactoryOptOut(): void
+    public function testFreezeTimeUsesTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
         $actual = $this->freezeTime();
 
-        $this->assertSame(Carbon::class, $actual::class);
+        $this->assertSame(BaseCarbonImmutable::class, $actual::class);
         $this->assertTrue(Carbon::getTestNow()->eq($actual));
     }
 
@@ -66,13 +67,13 @@ class FoundationInteractsWithTimeTest extends TestCase
         $this->assertSame(0, $actual->milliseconds);
     }
 
-    public function testFreezeSecondHonorsTheMutableDateFactoryOptOut(): void
+    public function testFreezeSecondUsesTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
         $actual = $this->freezeSecond();
 
-        $this->assertSame(Carbon::class, $actual::class);
+        $this->assertSame(BaseCarbonImmutable::class, $actual::class);
         $this->assertTrue(Carbon::getTestNow()->eq($actual));
         $this->assertSame(0, $actual->milliseconds);
     }
@@ -134,18 +135,6 @@ class FoundationInteractsWithTimeTest extends TestCase
 
         $this->assertSame(1002, $formatter->availableAt(1));
         $this->assertSame(1000, $formatter->availableAt());
-        $this->assertSame(1000, $formatter->availableAt(0));
-        $this->assertSame(999, $formatter->availableAt(-1));
-    }
-
-    public function testFutureIntegerDeadlinesRoundUpWithMutableDates(): void
-    {
-        Date::use(Carbon::class);
-        CarbonImmutable::setTestNow(CarbonImmutable::createFromTimestampUTC('1000.900000'));
-        $formatter = new SupportInteractsWithTimeTestFixture;
-
-        $this->assertSame(Carbon::class, Date::now()::class);
-        $this->assertSame(1002, $formatter->availableAt(1));
         $this->assertSame(1000, $formatter->availableAt(0));
         $this->assertSame(999, $formatter->availableAt(-1));
     }

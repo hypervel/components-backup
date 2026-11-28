@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Hypervel\Support;
 
 use ArrayAccess;
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Carbon\CarbonInterface;
 use Carbon\Exceptions\InvalidFormatException;
 use Closure;
@@ -1188,6 +1189,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable, Trans
     /**
      * Get the underlying string value as a Carbon instance.
      *
+     * @return null|BaseCarbonImmutable
      * @throws InvalidFormatException
      */
     public function toDate(?string $format = null, ?string $tz = null): ?CarbonInterface

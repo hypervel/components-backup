@@ -116,7 +116,7 @@ class ModelCastHelper
     /**
      * Get the type a cast attribute reads as.
      */
-    public function getReadableType(string $cast, Type $originalType): Type
+    public function getReadableType(string $cast, Type $originalType, ?ClassReflection $model = null): Type
     {
         $arguments = $this->parseCastArguments($cast);
         $cast = $this->parseCast($cast);
@@ -130,7 +130,7 @@ class ModelCastHelper
             'object' => new ObjectType(stdClass::class),
             'array', 'json' => new ArrayType(new BenevolentUnionType([new IntegerType, new StringType]), new MixedType),
             'collection' => new ObjectType(Collection::class),
-            'date', 'datetime' => $this->getDateType(),
+            'date', 'datetime' => $this->getDateType($model, $cast === 'date'),
             'immutable_date', 'immutable_datetime' => new ObjectType(CarbonImmutable::class),
             // The caster reads a missing or non-array value as null.
             AsArrayObject::class, AsEncryptedArrayObject::class => new BenevolentUnionType([
@@ -304,11 +304,17 @@ class ModelCastHelper
     /**
      * Get the type a date attribute reads as.
      */
-    public function getDateType(): Type
+    public function getDateType(?ClassReflection $model = null, bool $dateOnly = false): Type
     {
-        // Unlike upstream, the booted date factory's class is not used: applications can
-        // configure it, so asDateTime() only guarantees the interface.
-        return new ObjectType(CarbonInterface::class);
+        // Models may override date conversion and return mutable Carbon instances.
+        if ($model === null
+            || $model->getNativeMethod('asDateTime')->getDeclaringClass()->getName() !== Model::class
+            || ($dateOnly && $model->getNativeMethod('asDate')->getDeclaringClass()->getName() !== Model::class)
+        ) {
+            return new ObjectType(CarbonInterface::class);
+        }
+
+        return new ObjectType(CarbonImmutable::class);
     }
 
     /**

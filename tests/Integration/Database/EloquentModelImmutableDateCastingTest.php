@@ -6,9 +6,7 @@ namespace Hypervel\Tests\Integration\Database\EloquentModelImmutableDateCastingT
 
 use Hypervel\Database\Eloquent\Model;
 use Hypervel\Database\Schema\Blueprint;
-use Hypervel\Support\Carbon;
 use Hypervel\Support\CarbonImmutable;
-use Hypervel\Support\Facades\Date;
 use Hypervel\Support\Facades\Schema;
 use Hypervel\Tests\Integration\Database\DatabaseTestCase;
 
@@ -45,19 +43,6 @@ class EloquentModelImmutableDateCastingTest extends DatabaseTestCase
 
         $this->assertSame('2019-10', $model->toArray()['date_field']);
         $this->assertSame('2019-10 10:15', $model->toArray()['datetime_field']);
-        $this->assertSame(CarbonImmutable::class, $model->date_field::class);
-        $this->assertSame(CarbonImmutable::class, $model->datetime_field::class);
-    }
-
-    public function testImmutableCastsIgnoreTheMutableDateFactoryOptOut(): void
-    {
-        Date::use(Carbon::class);
-
-        $model = TestModelImmutable::create([
-            'date_field' => '2019-10-01',
-            'datetime_field' => '2019-10-01 10:15:20',
-        ]);
-
         $this->assertSame(CarbonImmutable::class, $model->date_field::class);
         $this->assertSame(CarbonImmutable::class, $model->datetime_field::class);
     }

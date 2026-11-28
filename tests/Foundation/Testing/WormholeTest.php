@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Tests\Foundation\Testing;
 
+use Carbon\CarbonImmutable as BaseCarbonImmutable;
 use Hypervel\Foundation\Testing\Wormhole;
 use Hypervel\Support\Carbon;
 use Hypervel\Support\CarbonImmutable;
@@ -50,14 +51,14 @@ class WormholeTest extends TestCase
         $this->assertEquals($future->format('Y-m-d'), $now->format('Y-m-d'));
     }
 
-    public function testTravelHonorsTheMutableDateFactoryOptOut(): void
+    public function testTravelUsesTheConfiguredImmutableClass(): void
     {
-        Date::use(Carbon::class);
+        Date::use(BaseCarbonImmutable::class);
 
         (new Wormhole(10))->days();
 
-        $this->assertSame(Carbon::class, Date::now()::class);
-        $this->assertSame(Carbon::class, Wormhole::back()::class);
+        $this->assertSame(BaseCarbonImmutable::class, Date::now()::class);
+        $this->assertSame(BaseCarbonImmutable::class, Wormhole::back()::class);
     }
 
     public function testItCanTravelByMicroseconds(): void

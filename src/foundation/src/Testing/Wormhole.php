@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Hypervel\Foundation\Testing;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Hypervel\Support\Carbon;
 use Hypervel\Support\Facades\Date;
@@ -277,6 +278,8 @@ class Wormhole
 
     /**
      * Travel back to the current time.
+     *
+     * @return CarbonImmutable
      */
     public static function back(): CarbonInterface
     {

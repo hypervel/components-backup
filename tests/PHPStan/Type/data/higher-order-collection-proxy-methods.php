@@ -61,7 +61,7 @@ function test(
     assertType('Hypervel\Support\Collection<int, App\Importer>', $collection->each->import());
     assertType('Hypervel\Support\Collection<int, App\Importer>', $collection->filter->isImported());
 
-    // Unlike upstream, ids read int on the SQLite test connection, dates read CarbonInterface, and
+    // Unlike upstream, ids read int on the SQLite test connection, dates read CarbonImmutable, and
     // User::email() is an accessor Eloquent applies, so email reads as its untyped callback.
     assertType('float|int', $users->avg->id + $users->average->id);
     assertType('bool', $users->contains->email);
@@ -76,7 +76,7 @@ function test(
     assertType('Hypervel\Support\Collection<int, mixed>', $users->map->email);
     assertType('Hypervel\Support\Collection<int, int>', $users->map->id);
     assertType('Hypervel\Support\Collection<(int|string), int<0, max>>', $users->groupBy('status')->map->count());
-    assertType('Hypervel\Support\Collection<int, Carbon\CarbonInterface|null>', $users->map->created_at);
+    assertType('Hypervel\Support\Collection<int, Carbon\CarbonImmutable|null>', $users->map->created_at);
     assertType('mixed', $users->max->email);
     assertType('int|null', $users->max->id);
     assertType('mixed', $users->min->email);

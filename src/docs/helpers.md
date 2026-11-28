@@ -3488,14 +3488,9 @@ $expiresAt = now();
 $expiresAt = $expiresAt->addMinutes(5);
 ```
 
-Applications that deliberately require mutable dates may configure the date factory during boot:
+The `Date` facade and date helpers create immutable Carbon dates. To customize the date class, pass an immutable Carbon class to `Date::useClass()` during boot. You may also pass a Carbon factory or a callable to `Date::use()`. The callable receives each date the factory creates and must return an immutable Carbon date.
 
-```php
-use Hypervel\Support\Carbon;
-use Hypervel\Support\Facades\Date;
-
-Date::use(Carbon::class);
-```
+When a library requires a mutable date, pass it `$date->toMutable()`. The original date keeps its value.
 
 For a thorough discussion of Carbon and its features, please consult the [official Carbon documentation](https://carbon.nesbot.com/guide/getting-started/introduction.html).
 

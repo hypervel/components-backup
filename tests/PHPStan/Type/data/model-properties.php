@@ -41,7 +41,7 @@ function test(
     MemberWithoutTimestampsTable $memberWithoutTimestampsTable,
 ): void {
     // Unlike upstream, the test connection is SQLite, which does not enforce unsigned, so unsigned
-    // columns read int. Dates read CarbonInterface because asDateTime() only guarantees the interface.
+    // columns read int.
 
     // Unlike upstream, a bare Attribute still applies, as in Eloquent, and reads mixed;
     // missingType.generics reports its missing generics.
@@ -71,8 +71,8 @@ function test(
     assertType('array', $user->json);
     assertType(Collection::class, $user->collection);
     assertType(Collection::class.'|null', $user->nullable_collection);
-    assertType(CarbonInterface::class, $user->date);
-    assertType(CarbonInterface::class, $user->datetime);
+    assertType(CarbonImmutable::class, $user->date);
+    assertType(CarbonImmutable::class, $user->datetime);
     assertType(CarbonImmutable::class, $user->immutable_date);
     assertType(CarbonImmutable::class, $user->immutable_datetime);
     assertType('int', $user->timestamp);
@@ -88,7 +88,7 @@ function test(
 
     assertType('int', $user->id);
     assertType('bool', $user->blocked);
-    assertType('Carbon\CarbonInterface|null', $user->created_at);
+    assertType('Carbon\CarbonImmutable|null', $user->created_at);
     assertType('array', $user->meta);
     assertType('string', $account->active);
     assertType('string', $role->id);
@@ -194,4 +194,36 @@ class ModelWithCasts extends Model
             'string' => AsStringable::class.':'.$argument,
         ];
     }
+}
+
+class ModelWithDateOverride extends User
+{
+    protected ?string $table = 'users';
+
+    protected function asDateTime(mixed $value): CarbonInterface
+    {
+        return parent::asDateTime($value)->toMutable();
+    }
+}
+
+function testDateOverride(ModelWithDateOverride $user): void
+{
+    assertType(CarbonInterface::class, $user->datetime);
+    assertType(CarbonImmutable::class, $user->immutable_datetime);
+}
+
+class ModelWithDateOnlyOverride extends User
+{
+    protected ?string $table = 'users';
+
+    protected function asDate(mixed $value): CarbonInterface
+    {
+        return parent::asDate($value)->toMutable();
+    }
+}
+
+function testDateOnlyOverride(ModelWithDateOnlyOverride $user): void
+{
+    assertType(CarbonInterface::class, $user->date);
+    assertType(CarbonImmutable::class, $user->datetime);
 }

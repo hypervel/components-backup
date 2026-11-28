@@ -249,13 +249,13 @@ class ModelPropertyHelper
             $writableType = $date ? $this->modelCastHelper->getDateWriteableType() : new MixedType;
         } elseif ($date) {
             $readableType = $cast !== null
-                ? $this->modelCastHelper->getReadableType($cast, $readableType)
-                : $this->modelCastHelper->getDateType();
+                ? $this->modelCastHelper->getReadableType($cast, $readableType, $classReflection)
+                : $this->modelCastHelper->getDateType($classReflection);
             // Eloquent runs fromDateTime() on date columns before applying any cast,
             // so the cast's setter type does not apply to assignments.
             $writableType = $this->modelCastHelper->getDateWriteableType();
         } elseif ($cast !== null) {
-            $readableType = $this->modelCastHelper->getReadableType($cast, $readableType);
+            $readableType = $this->modelCastHelper->getReadableType($cast, $readableType, $classReflection);
             $writableType = $this->modelCastHelper->getWriteableType($cast, $writableType);
         }
 
